@@ -94,14 +94,27 @@ RUN ln -sf /dev/stdout /var/log/nginx/access.log \
 
 EXPOSE 80
 
-STOPSIGNAL SIGTERM
+ARG TARGET
+ARG CLIENT_ID
+ARG CLIENT_SECRET
+ARG OAUTH_TOKEN_ENDPOINT
+
+ENV TARGET="${TARGET}"
+ENV CLIENT_ID="${CLIENT_ID}"
+ENV CLIENT_SECRET="${CLIENT_SECRET}"
+ENV OAUTH_TOKEN_ENDPOINT="${OAUTH_TOKEN_ENDPOINT}"
 
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY oauth2.js /etc/nginx/conf.d/oauth2.js
 COPY default.conf /etc/nginx/conf.d/default.conf
-COPY start.sh /
-RUN chmod +x /start.sh
+RUN sed -i -e "s,___TARGET___,$TARGET,g" /etc/nginx/conf.d/default.conf
+RUN sed -i -e "s,___CLIENT_ID___,$CLIENT_ID,g" /etc/nginx/conf.d/default.conf
+RUN sed -i -e "s,___CLIENT_SECRET___,$CLIENT_SECRET,g" /etc/nginx/conf.d/default.conf
+RUN sed -i -e "s,___OAUTH_TOKEN_ENDPOINT___,$OAUTH_TOKEN_ENDPOINT,g" /etc/nginx/conf.d/default.conf
 
-#ENTRYPOINT /start.sh
+STOPSIGNAL SIGTERM
+
+CMD ["nginx", "-g", "daemon off;"]
+
 
 
